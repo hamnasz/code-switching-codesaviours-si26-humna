@@ -1,4 +1,4 @@
-Code Switching NLP | Code Saviours SI-26 | [Your Full Name]
+Code Switching NLP | Code Saviours SI-26 | Humna Imran
 
 # code-switching-codesaviours-si26-humna
 
