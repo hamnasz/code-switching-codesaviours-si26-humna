@@ -18,7 +18,13 @@ Model on the Hub: [hamnaheh/code-switching-langid-si26-humna](https://huggingfac
 
 You type a sentence that mixes Roman Urdu and English, the way people actually text. The app splits it into words and runs them through a small language model (XLM-RoBERTa) that was fine-tuned to recognize which language each word belongs to. Every word gets a tag, Urdu, English, or Mix, and the app shows them color coded so you can see the mix at a glance. Under the hood it's just token classification, the same kind of model used for things like part-of-speech tagging, just trained on a different label set.
 
-![Word-level label distribution in the training data](assets/label_distribution.png)
+```mermaid
+xychart-beta
+    title "Word-level label distribution in training data"
+    x-axis [URD, ENG, MIX]
+    y-axis "Word count" 0 --> 2000
+    bar [1810, 680, 0]
+```
 
 ## Results
 
@@ -32,9 +38,39 @@ The model was fine-tuned on 220 hand-filtered code-switched sentences (2,490 wor
 | F1 (MIX) | 0.000 |
 | Macro F1 | 0.587 |
 
-![Confusion matrix for word-level language ID](assets/confusion_matrix.png)
+Confusion matrix (rows are the true label, columns are what the model predicted):
 
-![Precision, recall, and F1 by label](assets/precision_recall_f1.png)
+| True \ Predicted | URD | ENG | MIX |
+|---|---|---|---|
+| **URD** | 359 | 22 | 0 |
+| **ENG** | 26 | 112 | 0 |
+| **MIX** | 0 | 0 | 0 |
+
+Precision, recall, and F1 per label:
+
+```mermaid
+xychart-beta
+    title "URD: precision / recall / F1"
+    x-axis [precision, recall, "f1-score"]
+    y-axis "Score" 0 --> 1
+    bar [0.933, 0.942, 0.937]
+```
+
+```mermaid
+xychart-beta
+    title "ENG: precision / recall / F1"
+    x-axis [precision, recall, "f1-score"]
+    y-axis "Score" 0 --> 1
+    bar [0.836, 0.812, 0.824]
+```
+
+```mermaid
+xychart-beta
+    title "MIX: precision / recall / F1"
+    x-axis [precision, recall, "f1-score"]
+    y-axis "Score" 0 --> 1
+    bar [0, 0, 0]
+```
 
 A quick honest note on that MIX score: it's zero because the training data ended up with no MIX-labeled examples at all. The filtering step in the Week 6 notebook only kept words matching plain letters, so hyphenated hybrid words (the ones that would've been tagged MIX) never made it in. The model literally never saw a MIX example to learn from, so it can't predict one. URD and ENG are the numbers that reflect real model performance here.
 
