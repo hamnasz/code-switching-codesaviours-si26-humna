@@ -8,9 +8,8 @@ Most Pakistanis online don't write in pure Urdu or pure English, they mix both i
 
 ## Live Demo
 
-Streamlit app: [https://huggingface.co/spaces/hamnaheh/code-switching-langid-si26-humna-demo](https://huggingface.co/spaces/hamnaheh/code-switching-langid-si26-humna-demo)
+Streamlit app: [https://huggingface.co/spaces/hamnaheh/code-switching-langid-si26-humna-demo](https://code-switching-codesaviours-si26-humna.streamlit.app/)
 
-*(Note: replace this with your actual Space URL once it's deployed and live, I wasn't able to confirm the Space is up from here.)*
 
 Model on the Hub: [hamnaheh/code-switching-langid-si26-humna](https://huggingface.co/hamnaheh/code-switching-langid-si26-humna)
 
