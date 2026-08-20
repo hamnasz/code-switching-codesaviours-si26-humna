@@ -1,67 +1,77 @@
-# Code Switching NLP | Code Saviours SI-26 | Humna Imran
+# Roman Urdu Code-Switching Language ID
 
-Project 2 of the Code Saviours SI-26 internship: a labeled dataset of naturally
-code-switched **Roman Urdu + English** sentences — the way ~230 million
-Pakistanis actually write online (e.g. *"Aaj mera mood nahi hai for anything"*).
+A model and demo app that look at a Roman Urdu / English sentence and tag every single word as Urdu, English, or a mixed hybrid.
 
-## What's in this repo
+## Why this matters
 
-| File | Description |
+Most Pakistanis online don't write in pure Urdu or pure English, they mix both in the same sentence without thinking about it, something like "Aaj mera mood nahi hai for anything." Standard NLP tools are built around the idea that a piece of text is in one language, so they tend to break or give weird results on text like this. This project tackles that gap directly: it labels each word by language so that anything built on top of it (sentiment analysis, chatbots, keyboard suggestions, content moderation) can actually understand mixed Roman Urdu text instead of choking on it.
+
+## Live Demo
+
+Streamlit app: [https://huggingface.co/spaces/hamnaheh/code-switching-langid-si26-humna-demo](https://huggingface.co/spaces/hamnaheh/code-switching-langid-si26-humna-demo)
+
+*(Note: replace this with your actual Space URL once it's deployed and live, I wasn't able to confirm the Space is up from here.)*
+
+Model on the Hub: [hamnaheh/code-switching-langid-si26-humna](https://huggingface.co/hamnaheh/code-switching-langid-si26-humna)
+
+## How it works
+
+You type a sentence that mixes Roman Urdu and English, the way people actually text. The app splits it into words and runs them through a small language model (XLM-RoBERTa) that was fine-tuned to recognize which language each word belongs to. Every word gets a tag, Urdu, English, or Mix, and the app shows them color coded so you can see the mix at a glance. Under the hood it's just token classification, the same kind of model used for things like part-of-speech tagging, just trained on a different label set.
+
+![Word-level label distribution in the training data](assets/label_distribution.png)
+
+## Results
+
+The model was fine-tuned on 220 hand-filtered code-switched sentences (2,490 word-level labels) and evaluated on a held-out test split.
+
+| Metric | Score |
 |---|---|
-| `SI26-Week6-Humna.ipynb` | Colab notebook — collects, filters, and labels the dataset end to end |
-| `dataset.csv` | Final labeled dataset (220 sentences, 2,490 word-level rows) |
+| Accuracy | 0.908 |
+| F1 (URD) | 0.937 |
+| F1 (ENG) | 0.824 |
+| F1 (MIX) | 0.000 |
+| Macro F1 | 0.587 |
 
-## Method
+![Confusion matrix for word-level language ID](assets/confusion_matrix.png)
 
-Instead of manually copying tweets one by one, this project pulls from an
-existing **real, public Roman Urdu dataset** and mines it for sentences that
-are genuinely code-switched, then labels them automatically:
+![Precision, recall, and F1 by label](assets/precision_recall_f1.png)
 
-1. **Source data** — [`Smat26/Roman-Urdu-Dataset`](https://github.com/Smat26/Roman-Urdu-Dataset)
-   on GitHub, a public, UCI-referenced compilation of 20,000+ Roman Urdu
-   sentences gathered from Twitter, Facebook comments, and e-commerce reviews
-   (compiled by Zareen Sharf, GPL-3.0 license).
-2. **Filtering** — kept only sentences with genuine bilingual mixing: 2+
-   English-tagged words and 3+ Urdu-tagged words, with Urdu still the
-   majority language (max ~55% English).
-3. **Word-level labeling (URD / ENG / MIX)** — dictionary lookup against the
-   top 10,000 common English words (`google-10000-english`), with a curated
-   override list for Roman Urdu words that collide with English spellings
-   (e.g. `"mil"`, `"beta"`, `"par"`, `"is"`). This mirrors the approach used
-   in prior Roman Urdu code-switching research (Ali & Sabir, arXiv:2103.02252,
-   who built the English side of their labeler from the `dwyl/english-words`
-   list the same way).
-4. **Manual spot-check** — a random sample was reviewed and corrected before
-   publishing, since dictionary-based labeling is a bootstrapping method, not
-   a gold standard.
+A quick honest note on that MIX score: it's zero because the training data ended up with no MIX-labeled examples at all. The filtering step in the Week 6 notebook only kept words matching plain letters, so hyphenated hybrid words (the ones that would've been tagged MIX) never made it in. The model literally never saw a MIX example to learn from, so it can't predict one. URD and ENG are the numbers that reflect real model performance here.
 
-## Dataset stats
+## How to run locally
 
-- 220 sentences
-- 2,490 word-level rows
-- Label distribution: ~73% URD, ~27% ENG (MIX is rare — mostly hyphenated hybrids)
+Clone the repo and set up the demo app:
 
-## Label meanings
+```bash
+git clone https://github.com/hamnasz/code-switching-codesaviours-si26-humna.git
+cd code-switching-codesaviours-si26-humna/SI26-Week7
+pip install streamlit transformers torch huggingface_hub
+streamlit run app.py
+```
 
-- `URD` — Roman Urdu word
-- `ENG` — English word
-- `MIX` — hybrid/hyphenated token combining both
+The app pulls the fine-tuned model straight from the Hugging Face Hub the first time it runs, so no separate download step is needed.
 
-## Limitations
+If you'd rather just use the model in your own Python code:
 
-Automatic labeling can misclassify short words that happen to exist in both
-languages (e.g. "to", "par"). The curated override list reduces this but
-doesn't eliminate it — treat labels as high-quality silver annotations, spot
-checked, rather than perfect gold-standard.
+```bash
+pip install transformers torch
+```
 
-## Credit
+```python
+from transformers import AutoTokenizer, AutoModelForTokenClassification
 
-Source sentences: [`Smat26/Roman-Urdu-Dataset`](https://github.com/Smat26/Roman-Urdu-Dataset)
-(GPL-3.0), originally compiled by Zareen Sharf, referenced at the
-[UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Roman+Urdu+Data+Set).
+tokenizer = AutoTokenizer.from_pretrained("hamnaheh/code-switching-langid-si26-humna")
+model = AutoModelForTokenClassification.from_pretrained("hamnaheh/code-switching-langid-si26-humna")
+```
 
-## Links
+## Repo contents
 
-- Hugging Face dataset: `https://huggingface.co/datasets/hamnaheh/code-switching-codesaviours-si26-humna`
+| Path | What's in it |
+|---|---|
+| `SI26-Week6/SI26-Week6-Humna.ipynb` | Builds and labels the dataset from public Roman Urdu text |
+| `SI26-Week6/dataset.csv` | Final labeled dataset (220 sentences, 2,490 word rows) |
+| `SI26-Week7/SI26-Week7-humna.ipynb` | Fine-tunes XLM-RoBERTa on the dataset and evaluates it |
+| `SI26-Week7/app.py` | Streamlit demo app |
+| `SI26-Week7/requirements.txt` | Dependencies for the demo app |
 
-*Built by: Humna Imran | Code Saviours SI-26 | 2026*
+Built by: Humna Imran | Code Saviours SI-26 | 2026
